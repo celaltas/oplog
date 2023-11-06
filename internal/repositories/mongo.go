@@ -3,6 +3,8 @@ package repositories
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -25,7 +27,7 @@ func (s *OplogReaderMongoRepository) ReadOplog(collectionName string) ([]byte, e
 
 func (s *OplogReaderMongoRepository) getOplogs(collectionName string) ([]byte, error) {
 	db := s.client.Database("local")
-	filter := bson.D{{Key: "ns", Value: "admin.students"}}
+	filter := bson.D{{Key: "ns", Value: collectionName}}
 	var result []map[string]interface{}
 	cursor, err := db.Collection("oplog.rs").Find(s.ctx, filter)
 	if err != nil {
@@ -36,6 +38,10 @@ func (s *OplogReaderMongoRepository) getOplogs(collectionName string) ([]byte, e
 
 	if err := cursor.All(s.ctx, &result); err != nil {
 		return nil, err
+
+	}
+	if len(result) == 0 {
+		return nil, fmt.Errorf("no oplogs found")
 
 	}
 

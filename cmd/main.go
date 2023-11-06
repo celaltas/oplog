@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 	log "github.com/sirupsen/logrus"
+	"flag"
 	"github.com/celal/oplog-migration/internal/config"
 	"github.com/celal/oplog-migration/internal/core/domain"
 	"github.com/celal/oplog-migration/internal/core/services"
@@ -24,7 +25,8 @@ func init() {
 
 func main() {
 
-
+	collectionName := flag.String("collection", "", "the collection")
+	flag.Parse()
 	log.Info("Oplog starting...")
 
 
@@ -46,9 +48,10 @@ func main() {
 	postgresRepository := repositories.NewOplogWriterPostgresRepository(postgresClient)
 	oplogWriter := services.NewOplogWriterService(postgresRepository)
 
-	collectionName := "admin.students"
-
-	oplog, err := oplogReader.ReadOplog(collectionName)
+	if collectionName == nil {
+		log.Fatal("collection name is required")
+	}
+	oplog, err := oplogReader.ReadOplog(*collectionName)
 	if err != nil {
 		log.Fatal("error when reading oplog:", err)
 	}
