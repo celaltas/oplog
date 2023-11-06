@@ -1,4 +1,4 @@
-package main
+package domain
 
 import (
 	"encoding/json"
@@ -7,8 +7,9 @@ import (
 	"sort"
 	"strings"
 	"time"
-
 )
+
+
 
 const (
 	Invalid = iota
@@ -23,10 +24,8 @@ type OplogEntry struct {
 	Where     map[string]interface{} `json:"o2"`
 }
 
-func main() {
-	fmt.Println("Hello, World!")
 
-}
+
 
 func GenerateSQL(oplog string) ([]string, error) {
 
@@ -280,6 +279,12 @@ func GetColumnConstraints(col string) []string {
 	}
 	return constraints
 }
+
+
+
+
+
+
 
 func getJSONType(jsonStr string) int {
 	if len(jsonStr) == 0 {
