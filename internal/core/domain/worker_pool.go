@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 	"time"
+	log "github.com/sirupsen/logrus"
 )
 
 var ErrNoWorkers = fmt.Errorf("attempting to create worker pool with less than 1 worker")
@@ -50,23 +51,22 @@ func NewWorkerPool(numWorkers int, channelSize int) (*WorkerPool, error) {
 
 func (wp *WorkerPool) Start() {
 	wp.start.Do(func() {
-		fmt.Println("starting worker pool")
+		log.Info("starting worker pool")
 		wp.startWorkers()
 	})
 }
 
 func (wp *WorkerPool) Stop() {
 	wp.stop.Do(func() {
-		fmt.Println("stopping worker pool")
+		log.Info("stopping worker pool")
 		close(wp.quit)
-
 	})
 }
 
 func (wp *WorkerPool) Err() {
 	select {
 		case err := <-wp.errChan:
-			fmt.Println("error occurred: ", err)
+			log.Info("an error occured when processing task:", err)
 		case <-wp.quit:
 	}
 
@@ -88,14 +88,13 @@ func (wp *WorkerPool) SubmitNonBlocking(tasks []TaskHandler) {
 func (wp *WorkerPool) startWorkers() {
 	for i := 0; i < wp.numWorkers; i++ {
 		go func(workerNum int) {
-			fmt.Printf("starting worker %d\n", workerNum)
 			for {
 				select {
 				case <-wp.quit:
-					fmt.Printf("stopping worker %d with quit channel\n", workerNum)
+					log.Infof("stopping worker %d with quit channel\n", workerNum)
 				case task, ok := <-wp.tasks:
 					if !ok {
-						fmt.Printf("stopping worker %d with closed tasks channel\n", workerNum)
+						log.Infof("stopping worker %d with closed tasks channel\n", workerNum)
 						return
 					}
 					time.Sleep(1*time.Second)

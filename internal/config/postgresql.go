@@ -1,8 +1,11 @@
 package config
 
 import (
+	"fmt"
 	"os"
+
 	"github.com/joho/godotenv"
+	log "github.com/sirupsen/logrus"
 )
 
 type PostgresConfig struct {
@@ -12,20 +15,18 @@ type PostgresConfig struct {
 	MaxIdleTime  string
 }
 
-
 func NewConfigPostgres() PostgresConfig {
-	
-	if err:= godotenv.Load();err!=nil{
-		panic(err)
+
+	if err := godotenv.Load(); err != nil {
+		log.Panic("Error loading .env file", err)
 	}
 
-
-	dsn:= "host="+os.Getenv("POSTGRES_HOST")+
-		" port="+os.Getenv("POSTGRES_PORT")+
-		" user="+os.Getenv("POSTGRES_USER")+
-		" password="+os.Getenv("POSTGRES_PASSWORD")+
-		" dbname="+os.Getenv("POSTGRES_DATABASE")+
-		" sslmode=disable"
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_PORT"),
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_DATABASE"))
 
 	return PostgresConfig{
 		Dsn:          dsn,

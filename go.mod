@@ -4,7 +4,13 @@ go 1.18
 
 require go.mongodb.org/mongo-driver v1.12.1
 
-require github.com/joho/godotenv v1.5.1 // indirect
+require (
+	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+	go.uber.org/zap v1.26.0 // indirect
+	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
+)
 
 require (
 	github.com/golang/snappy v0.0.1 // indirect

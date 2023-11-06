@@ -1,10 +1,10 @@
 package config
 
 import (
-	"fmt"
 	"os"
-
+	"fmt"
 	"github.com/joho/godotenv"
+	log "github.com/sirupsen/logrus"
 )
 
 type MongoConfig struct {
@@ -17,16 +17,15 @@ type MongoConfig struct {
 
 func NewMongoConfig() *MongoConfig {
 	if err := godotenv.Load(); err != nil {
-		panic(err)
+		log.Panic("Error loading .env file", err)
 	}
 
-	dsn := "mongodb://" +
-		os.Getenv("MONGODB_USER") + ":" +
-		os.Getenv("MONGODB_PASSWORD") + "@" +
-		os.Getenv("MONGODB_HOST") + ":" +
-		os.Getenv("MONGODB_PORT") + "/" +
-		os.Getenv("MONGODB_DATABASE") + "?authSource=admin&replicaSet=dbrs&directConnection=true"
-	fmt.Println("dsn:", dsn)
+	dsn := fmt.Sprintf("mongodb://%s:%s@%s:%s/%s?authSource=admin&replicaSet=dbrs&directConnection=true",
+	os.Getenv("MONGODB_USER"),
+	os.Getenv("MONGODB_PASSWORD"),
+	os.Getenv("MONGODB_HOST"),
+	os.Getenv("MONGODB_PORT"),
+	os.Getenv("MONGODB_DATABASE"))
 	return &MongoConfig{
 		Dsn:              dsn,
 		ConnectTimeoutMS: 3000,

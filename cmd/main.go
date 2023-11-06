@@ -2,14 +2,12 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"sync"
-	_ "sync"
 	"syscall"
 	"time"
-
+	log "github.com/sirupsen/logrus"
 	"github.com/celal/oplog-migration/internal/config"
 	"github.com/celal/oplog-migration/internal/core/domain"
 	"github.com/celal/oplog-migration/internal/core/services"
@@ -17,7 +15,18 @@ import (
 	"github.com/celal/oplog-migration/internal/repositories"
 )
 
+
+func init() {
+	log.SetFormatter(&log.JSONFormatter{})
+	log.SetOutput(os.Stdout)
+  
+}
+
 func main() {
+
+
+	log.Info("Oplog starting...")
+
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGTERM, syscall.SIGINT)
@@ -26,11 +35,13 @@ func main() {
 	defer cancel()
 
 	mongoConfig := config.NewMongoConfig()
+	log.Info("Connecting mongo db...")
 	mongoClient := database.ConnectMongo(mongoConfig)
 	mongoRepository := repositories.NewOplogReaderMongoRepository(mongoClient, ctx)
 	oplogReader := services.NewOplogReaderService(mongoRepository)
 
 	postgresConfig := config.NewConfigPostgres()
+	log.Info("Connecting postgresql db...")
 	postgresClient := database.ConnectPostgreSQL(postgresConfig)
 	postgresRepository := repositories.NewOplogWriterPostgresRepository(postgresClient)
 	oplogWriter := services.NewOplogWriterService(postgresRepository)
@@ -39,13 +50,12 @@ func main() {
 
 	oplog, err := oplogReader.ReadOplog(collectionName)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal("error when reading oplog:", err)
 	}
 
 	sqlStatements, err := domain.GenerateSQL(string(oplog))
-
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal("error when transforming oplog to sql statements:", err)
 	}
 
 	ctx, cancel = context.WithCancel(context.Background())
@@ -54,7 +64,7 @@ func main() {
 	wg.Add(len(sqlStatements))
 	wp, err := domain.NewWorkerPool(len(sqlStatements), 0)
 	if err != nil {
-		panic(err)
+		log.Fatal("error when creating worker pool:", err)
 	}
 
 	var tasks []domain.TaskHandler
